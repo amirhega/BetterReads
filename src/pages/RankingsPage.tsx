@@ -2,6 +2,9 @@ import { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useRankings, useInsertRanking, useRemoveRanking } from '@/hooks/useRankings';
 import { useLibrary } from '@/hooks/useLibrary';
+import { useAuth } from '@/context/AuthContext';
+import { ShareableRankingCard } from '@/components/share/ShareableCard';
+import { Modal } from '@/components/ui/Modal';
 import { getCoverUrl } from '@/lib/openLibrary/covers';
 import { binaryInsertionSort } from '@/lib/ranking/engine';
 import type { ComparisonChoice, ComparisonPair, RankedBook as RankingRankedBook } from '@/types/ranking';
@@ -16,9 +19,11 @@ export function RankingsPage() {
   const insertRanking = useInsertRanking();
   const removeRanking = useRemoveRanking();
 
+  const { profile } = useAuth();
   const [state, setState] = useState<RankingState>('idle');
   const [comparison, setComparison] = useState<ComparisonPair | null>(null);
   const [newBookId, setNewBookId] = useState<string | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   const generatorRef = useRef<Generator<ComparisonPair, number, ComparisonChoice> | null>(null);
 
@@ -98,14 +103,24 @@ export function RankingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold font-display">Your Rankings</h1>
-        {unrankedBooks && unrankedBooks.length > 0 && state === 'idle' && (
-          <button
-            onClick={() => setState('selecting')}
-            className="bg-accent-primary text-surface px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-primary/90 transition-colors"
-          >
-            + Rank a Book
-          </button>
-        )}
+        <div className="flex gap-2">
+          {rankings && rankings.length > 0 && (
+            <button
+              onClick={() => setShowShare(true)}
+              className="bg-accent-secondary text-surface px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-secondary/90 transition-colors"
+            >
+              Share
+            </button>
+          )}
+          {unrankedBooks && unrankedBooks.length > 0 && state === 'idle' && (
+            <button
+              onClick={() => setState('selecting')}
+              className="bg-accent-primary text-surface px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-primary/90 transition-colors"
+            >
+              + Rank a Book
+            </button>
+          )}
+        </div>
       </div>
 
       {/* COMPARING STATE: A vs B */}
@@ -272,6 +287,16 @@ export function RankingsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Share Modal */}
+      {rankings && (
+        <Modal open={showShare} onClose={() => setShowShare(false)} title="Share Your Rankings">
+          <ShareableRankingCard
+            rankings={rankings}
+            username={profile?.username ?? 'user'}
+          />
+        </Modal>
       )}
     </div>
   );

@@ -46,6 +46,12 @@ export function Header() {
                 >
                   Rankings
                 </Link>
+                <Link
+                  to="/stats"
+                  className="text-text-secondary hover:text-text-primary text-sm hidden lg:block"
+                >
+                  Stats
+                </Link>
                 <div className="relative">
                   <button
                     onClick={() => setShowMenu(!showMenu)}
@@ -62,6 +68,21 @@ export function Header() {
                       >
                         Profile
                       </Link>
+                      <Link
+                        to="/lists"
+                        className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface-raised hover:text-text-primary"
+                        onClick={() => setShowMenu(false)}
+                      >
+                        Lists
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface-raised hover:text-text-primary"
+                        onClick={() => setShowMenu(false)}
+                      >
+                        Settings
+                      </Link>
+                      <div className="border-t border-surface-input my-1" />
                       <button
                         onClick={() => {
                           signOut();

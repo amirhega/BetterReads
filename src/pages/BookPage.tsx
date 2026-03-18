@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useUpsertBook } from '@/hooks/useLibrary';
 import { useBookReviews } from '@/hooks/useReviews';
 import { ShelfButton } from '@/components/book/ShelfButton';
+import { AddToListButton } from '@/components/book/AddToListButton';
 import { ReviewForm } from '@/components/book/ReviewForm';
 import { StarRating } from '@/components/ui/StarRating';
 
@@ -112,6 +113,7 @@ export function BookPage() {
             >
               Write Review
             </button>
+            {dbBook && <AddToListButton bookId={dbBook.id} />}
           </div>
         </div>
       </div>

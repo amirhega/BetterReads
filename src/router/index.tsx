@@ -7,6 +7,10 @@ import { BookPage } from '@/pages/BookPage';
 import { LibraryPage } from '@/pages/LibraryPage';
 import { DiaryPage } from '@/pages/DiaryPage';
 import { RankingsPage } from '@/pages/RankingsPage';
+import { StatsPage } from '@/pages/StatsPage';
+import { ListsPage } from '@/pages/ListsPage';
+import { ListDetailPage } from '@/pages/ListDetailPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { SignUpPage } from '@/pages/SignUpPage';
@@ -28,6 +32,10 @@ export const router = createBrowserRouter([
           { path: '/library', element: <LibraryPage /> },
           { path: '/diary', element: <DiaryPage /> },
           { path: '/rankings', element: <RankingsPage /> },
+          { path: '/stats', element: <StatsPage /> },
+          { path: '/lists', element: <ListsPage /> },
+          { path: '/lists/:listId', element: <ListDetailPage /> },
+          { path: '/settings', element: <SettingsPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

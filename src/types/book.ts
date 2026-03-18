@@ -101,6 +101,28 @@ export type ActivityType =
   | 'diary_entry'
   | 'followed_user';
 
+export interface List {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  items?: ListItem[];
+  profile?: Profile;
+}
+
+export interface ListItem {
+  id: string;
+  list_id: string;
+  book_id: string;
+  position: number;
+  notes: string | null;
+  added_at: string;
+  book?: Book;
+}
+
 export interface Activity {
   id: string;
   user_id: string;
