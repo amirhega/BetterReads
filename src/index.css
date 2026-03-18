@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surface colors (dark theme) */
+  --color-surface: #14181c;
+  --color-surface-raised: #1c2228;
+  --color-surface-overlay: #242c34;
+  --color-surface-input: #2a3440;
+
+  /* Accent palette */
+  --color-accent-primary: #00c030;
+  --color-accent-secondary: #40bcf4;
+  --color-accent-tertiary: #ff8000;
+  --color-accent-warm: #ee7752;
+
+  /* Text colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #99aabb;
+  --color-text-muted: #667788;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-text-secondary antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary;
+    font-family: var(--font-display);
+  }
+
+  a {
+    @apply text-accent-secondary hover:text-accent-primary transition-colors;
+  }
+}
