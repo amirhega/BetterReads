@@ -1,26 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useFeed } from '@/hooks/useProfile';
+import { getCoverUrl } from '@/lib/openLibrary/covers';
+import { format } from 'date-fns';
 
 export function HomePage() {
   const { user } = useAuth();
 
   if (user) {
-    return (
-      <div className="space-y-8">
-        <h1 className="text-3xl font-bold font-display">Your Feed</h1>
-        <div className="text-center py-20">
-          <p className="text-text-muted text-lg mb-4">
-            Follow readers to see their activity here.
-          </p>
-          <Link
-            to="/library"
-            className="inline-block bg-accent-primary text-surface px-6 py-3 rounded-lg font-medium hover:bg-accent-primary/90 transition-colors"
-          >
-            Go to Library
-          </Link>
-        </div>
-      </div>
-    );
+    return <AuthenticatedFeed />;
   }
 
   return (
@@ -74,4 +62,116 @@ export function HomePage() {
       </div>
     </div>
   );
+}
+
+function AuthenticatedFeed() {
+  const { data: feedItems, isLoading } = useFeed();
+
+  return (
+    <div className="space-y-8 max-w-2xl mx-auto">
+      <h1 className="text-3xl font-bold font-display">Your Feed</h1>
+
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {!isLoading && (!feedItems || feedItems.length === 0) && (
+        <div className="text-center py-20 space-y-4">
+          <p className="text-text-muted text-lg">
+            Follow readers to see their activity here.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link
+              to="/library"
+              className="inline-block bg-accent-primary text-surface px-6 py-3 rounded-lg font-medium hover:bg-accent-primary/90 transition-colors"
+            >
+              Go to Library
+            </Link>
+            <Link
+              to="/search"
+              className="inline-block bg-surface-raised text-text-primary px-6 py-3 rounded-lg font-medium hover:bg-surface-overlay transition-colors border border-surface-overlay"
+            >
+              Find Books
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {feedItems && feedItems.length > 0 && (
+        <div className="space-y-4">
+          {feedItems.map((item) => (
+            <div
+              key={item.id}
+              className="bg-surface-raised border border-surface-overlay rounded-xl p-4"
+            >
+              <div className="flex items-start gap-3">
+                {/* User avatar */}
+                <Link
+                  to={`/user/${item.profile?.username}`}
+                  className="w-9 h-9 rounded-full bg-accent-primary/20 flex items-center justify-center text-accent-primary text-sm font-bold shrink-0"
+                >
+                  {item.profile?.username?.[0]?.toUpperCase() ?? 'U'}
+                </Link>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/user/${item.profile?.username}`}
+                      className="text-text-primary font-medium text-sm hover:text-accent-primary"
+                    >
+                      {item.profile?.display_name ?? item.profile?.username}
+                    </Link>
+                    <span className="text-text-muted text-xs">
+                      {format(new Date(item.created_at), 'MMM d')}
+                    </span>
+                  </div>
+                  <p className="text-text-secondary text-sm mt-0.5">
+                    {activityLabel(item.activity_type)}
+                  </p>
+                </div>
+
+                {/* Book cover */}
+                {item.book?.cover_i && (
+                  <Link
+                    to={`/book/${item.book.ol_work_key.replace('/works/', '')}`}
+                    className="shrink-0"
+                  >
+                    <img
+                      src={getCoverUrl(item.book.cover_i, 'S')}
+                      alt={item.book.title}
+                      className="w-10 h-14 object-cover rounded shadow"
+                    />
+                  </Link>
+                )}
+              </div>
+
+              {item.book && (
+                <Link
+                  to={`/book/${item.book.ol_work_key.replace('/works/', '')}`}
+                  className="block mt-2 text-text-primary text-sm font-medium hover:text-accent-primary"
+                >
+                  {item.book.title}
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function activityLabel(type: string): string {
+  switch (type) {
+    case 'shelved': return 'added a book to their library';
+    case 'started_reading': return 'started reading';
+    case 'finished_reading': return 'finished reading';
+    case 'reviewed': return 'wrote a review';
+    case 'ranked': return 'ranked a book';
+    case 'diary_entry': return 'logged a reading session';
+    case 'followed_user': return 'followed a reader';
+    default: return 'was active';
+  }
 }

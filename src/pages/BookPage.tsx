@@ -1,17 +1,41 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getWork } from '@/lib/openLibrary/works';
 import { getCoverUrl } from '@/lib/openLibrary/covers';
+import { mapWorkToBook } from '@/lib/openLibrary/mappers';
+import { useAuth } from '@/context/AuthContext';
+import { useUpsertBook } from '@/hooks/useLibrary';
+import { useBookReviews } from '@/hooks/useReviews';
+import { ShelfButton } from '@/components/book/ShelfButton';
+import { ReviewForm } from '@/components/book/ReviewForm';
+import { StarRating } from '@/components/ui/StarRating';
 
 export function BookPage() {
   const { olWorkKey } = useParams();
+  const { user } = useAuth();
   const workKey = `/works/${olWorkKey}`;
+  const upsertBook = useUpsertBook();
+  const [showReview, setShowReview] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['work', workKey],
     queryFn: () => getWork(workKey),
     enabled: !!olWorkKey,
   });
+
+  // Upsert book to DB when loaded so we can reference it
+  const { data: dbBook } = useQuery({
+    queryKey: ['db-book', workKey],
+    queryFn: async () => {
+      if (!data) return null;
+      const mapped = mapWorkToBook(data.work, undefined, data.description);
+      return upsertBook.mutateAsync(mapped);
+    },
+    enabled: !!data,
+  });
+
+  const { data: reviews } = useBookReviews(dbBook?.id);
 
   if (isLoading) {
     return (
@@ -76,17 +100,68 @@ export function BookPage() {
             </div>
           )}
 
-          {/* Action buttons placeholder */}
+          {/* Action buttons */}
           <div className="flex flex-wrap gap-3 pt-4">
-            <button className="bg-accent-primary text-surface px-6 py-2 rounded-lg font-medium hover:bg-accent-primary/90 transition-colors">
-              Want to Read
-            </button>
-            <button className="bg-surface-raised text-text-secondary px-6 py-2 rounded-lg font-medium hover:bg-surface-overlay transition-colors border border-surface-overlay">
+            {dbBook && <ShelfButton bookId={dbBook.id} />}
+            <button
+              onClick={() => {
+                if (!user) return;
+                setShowReview(true);
+              }}
+              className="bg-surface-raised text-text-secondary px-6 py-2 rounded-lg font-medium hover:bg-surface-overlay transition-colors border border-surface-overlay"
+            >
               Write Review
             </button>
           </div>
         </div>
       </div>
+
+      {/* Reviews Section */}
+      {reviews && reviews.length > 0 && (
+        <div className="mt-12 space-y-6">
+          <h2 className="text-xl font-bold font-display">Reviews</h2>
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="bg-surface-raised border border-surface-overlay rounded-xl p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <Link
+                    to={`/user/${review.profile?.username}`}
+                    className="text-sm font-medium text-text-primary hover:text-accent-primary"
+                  >
+                    @{review.profile?.username}
+                  </Link>
+                  {review.star_rating && (
+                    <StarRating value={review.star_rating} readOnly size="sm" />
+                  )}
+                </div>
+                {review.contains_spoilers && (
+                  <span className="inline-block px-2 py-0.5 bg-accent-warm/20 text-accent-warm text-xs rounded">
+                    Spoilers
+                  </span>
+                )}
+                {review.review_text && (
+                  <p className="text-text-secondary text-sm leading-relaxed">
+                    {review.review_text}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {dbBook && (
+        <ReviewForm
+          bookId={dbBook.id}
+          bookTitle={work.title}
+          open={showReview}
+          onClose={() => setShowReview(false)}
+        />
+      )}
     </div>
   );
 }
