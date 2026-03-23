@@ -11,6 +11,9 @@ import { ShelfButton } from '@/components/book/ShelfButton';
 import { AddToListButton } from '@/components/book/AddToListButton';
 import { ReviewForm } from '@/components/book/ReviewForm';
 import { StarRating } from '@/components/ui/StarRating';
+import { DimensionRating } from '@/components/ui/DimensionRating';
+import { MoodTagPicker } from '@/components/ui/MoodTagPicker';
+import { RATING_DIMENSIONS } from '@/types/book';
 
 export function BookPage() {
   const { olWorkKey } = useParams();
@@ -143,6 +146,30 @@ export function BookPage() {
                   <span className="inline-block px-2 py-0.5 bg-accent-warm/20 text-accent-warm text-xs rounded">
                     Spoilers
                   </span>
+                )}
+                {/* Dimension ratings */}
+                {(() => {
+                  const dims = RATING_DIMENSIONS.filter(
+                    (d) => review[`rating_${d.key}` as keyof typeof review] !== null
+                  );
+                  if (dims.length === 0) return null;
+                  return (
+                    <div className="space-y-1 py-1">
+                      {dims.map((dim) => (
+                        <DimensionRating
+                          key={dim.key}
+                          label={dim.label}
+                          description={dim.description}
+                          value={review[`rating_${dim.key}` as keyof typeof review] as number}
+                          readOnly
+                        />
+                      ))}
+                    </div>
+                  );
+                })()}
+                {/* Mood tags */}
+                {review.mood_tags && review.mood_tags.length > 0 && (
+                  <MoodTagPicker selected={review.mood_tags} readOnly />
                 )}
                 {review.review_text && (
                   <p className="text-text-secondary text-sm leading-relaxed">

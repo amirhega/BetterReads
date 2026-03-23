@@ -58,11 +58,34 @@ export interface DiaryEntry {
   book?: Book;
 }
 
+export type RatingDimension = 'writing' | 'plot' | 'character' | 'pacing' | 'enjoyment';
+
+export const RATING_DIMENSIONS: { key: RatingDimension; label: string; description: string }[] = [
+  { key: 'writing', label: 'Writing', description: 'Prose quality & style' },
+  { key: 'plot', label: 'Plot', description: 'Story & structure' },
+  { key: 'character', label: 'Characters', description: 'Depth & development' },
+  { key: 'pacing', label: 'Pacing', description: 'Flow & momentum' },
+  { key: 'enjoyment', label: 'Enjoyment', description: 'Overall experience' },
+];
+
+export const MOOD_OPTIONS = [
+  'dark', 'lighthearted', 'funny', 'emotional', 'tense',
+  'hopeful', 'reflective', 'adventurous', 'mysterious', 'romantic',
+] as const;
+
+export type MoodTag = (typeof MOOD_OPTIONS)[number];
+
 export interface Review {
   id: string;
   user_id: string;
   book_id: string;
   star_rating: number | null;
+  rating_writing: number | null;
+  rating_plot: number | null;
+  rating_character: number | null;
+  rating_pacing: number | null;
+  rating_enjoyment: number | null;
+  mood_tags: string[];
   review_text: string | null;
   contains_spoilers: boolean;
   created_at: string;

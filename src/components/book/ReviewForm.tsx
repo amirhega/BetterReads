@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { StarRating } from '@/components/ui/StarRating';
+import { DimensionRating } from '@/components/ui/DimensionRating';
+import { MoodTagPicker } from '@/components/ui/MoodTagPicker';
 import { useBookReview, useUpsertReview } from '@/hooks/useReviews';
+import { RATING_DIMENSIONS } from '@/types/book';
+import type { RatingDimension } from '@/types/book';
 
 interface ReviewFormProps {
   bookId: string;
@@ -10,19 +14,47 @@ interface ReviewFormProps {
   onClose: () => void;
 }
 
+type DimensionRatings = Record<RatingDimension, number | null>;
+
+const emptyDimensions: DimensionRatings = {
+  writing: null,
+  plot: null,
+  character: null,
+  pacing: null,
+  enjoyment: null,
+};
+
 export function ReviewForm({ bookId, bookTitle, open, onClose }: ReviewFormProps) {
   const { data: existingReview } = useBookReview(bookId);
   const upsertReview = useUpsertReview();
 
   const [rating, setRating] = useState<number | null>(null);
+  const [dimensions, setDimensions] = useState<DimensionRatings>({ ...emptyDimensions });
+  const [moodTags, setMoodTags] = useState<string[]>([]);
   const [text, setText] = useState('');
   const [spoilers, setSpoilers] = useState(false);
+  const [showDimensions, setShowDimensions] = useState(false);
 
   useEffect(() => {
     if (existingReview) {
       setRating(existingReview.star_rating);
+      setDimensions({
+        writing: existingReview.rating_writing,
+        plot: existingReview.rating_plot,
+        character: existingReview.rating_character,
+        pacing: existingReview.rating_pacing,
+        enjoyment: existingReview.rating_enjoyment,
+      });
+      setMoodTags(existingReview.mood_tags ?? []);
       setText(existingReview.review_text ?? '');
       setSpoilers(existingReview.contains_spoilers);
+      // Auto-expand dimensions if any were previously set
+      const hasDimensions = existingReview.rating_writing !== null
+        || existingReview.rating_plot !== null
+        || existingReview.rating_character !== null
+        || existingReview.rating_pacing !== null
+        || existingReview.rating_enjoyment !== null;
+      setShowDimensions(hasDimensions);
     }
   }, [existingReview]);
 
@@ -32,6 +64,12 @@ export function ReviewForm({ bookId, bookTitle, open, onClose }: ReviewFormProps
       {
         bookId,
         starRating: rating,
+        ratingWriting: dimensions.writing,
+        ratingPlot: dimensions.plot,
+        ratingCharacter: dimensions.character,
+        ratingPacing: dimensions.pacing,
+        ratingEnjoyment: dimensions.enjoyment,
+        moodTags,
         reviewText: text || null,
         containsSpoilers: spoilers,
       },
@@ -41,18 +79,55 @@ export function ReviewForm({ bookId, bookTitle, open, onClose }: ReviewFormProps
 
   return (
     <Modal open={open} onClose={onClose} title={bookTitle}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Overall Rating */}
         <div>
-          <label className="block text-text-secondary text-sm mb-2">Rating</label>
+          <label className="block text-text-secondary text-sm mb-2">Overall Rating</label>
           <StarRating value={rating} onChange={setRating} size="lg" />
         </div>
 
+        {/* Dimension Ratings (collapsible) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowDimensions(!showDimensions)}
+            className="text-sm text-accent-primary hover:text-accent-primary/80 transition-colors"
+          >
+            {showDimensions ? '- Hide detailed ratings' : '+ Rate by category'}
+          </button>
+
+          {showDimensions && (
+            <div className="mt-3 space-y-2.5 bg-surface-input/50 rounded-lg p-3 border border-surface-overlay">
+              {RATING_DIMENSIONS.map((dim) => (
+                <DimensionRating
+                  key={dim.key}
+                  label={dim.label}
+                  description={dim.description}
+                  value={dimensions[dim.key]}
+                  onChange={(val) =>
+                    setDimensions((prev) => ({ ...prev, [dim.key]: val }))
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Mood Tags */}
+        <div>
+          <label className="block text-text-secondary text-sm mb-2">
+            How did it feel?
+          </label>
+          <MoodTagPicker selected={moodTags} onChange={setMoodTags} />
+        </div>
+
+        {/* Review Text */}
         <div>
           <label className="block text-text-secondary text-sm mb-2">Review</label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={5}
+            rows={4}
             placeholder="What did you think?"
             className="w-full bg-surface-input border border-surface-overlay rounded-lg px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 resize-none"
           />

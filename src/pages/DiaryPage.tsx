@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useDiary, useDeleteDiaryEntry } from '@/hooks/useDiary';
 import { getCoverUrl } from '@/lib/openLibrary/covers';
 import { DiaryEntryForm } from '@/components/diary/DiaryEntryForm';
-import { SHELF_LABELS } from '@/config/constants';
+
 
 export function DiaryPage() {
   const { data: entries, isLoading } = useDiary();

@@ -49,11 +49,23 @@ export function useUpsertReview() {
     mutationFn: async ({
       bookId,
       starRating,
+      ratingWriting,
+      ratingPlot,
+      ratingCharacter,
+      ratingPacing,
+      ratingEnjoyment,
+      moodTags,
       reviewText,
       containsSpoilers,
     }: {
       bookId: string;
       starRating: number | null;
+      ratingWriting: number | null;
+      ratingPlot: number | null;
+      ratingCharacter: number | null;
+      ratingPacing: number | null;
+      ratingEnjoyment: number | null;
+      moodTags: string[];
       reviewText: string | null;
       containsSpoilers: boolean;
     }) => {
@@ -64,6 +76,12 @@ export function useUpsertReview() {
             user_id: user!.id,
             book_id: bookId,
             star_rating: starRating,
+            rating_writing: ratingWriting,
+            rating_plot: ratingPlot,
+            rating_character: ratingCharacter,
+            rating_pacing: ratingPacing,
+            rating_enjoyment: ratingEnjoyment,
+            mood_tags: moodTags,
             review_text: reviewText,
             contains_spoilers: containsSpoilers,
           },
